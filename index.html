@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Bạn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette colors */
+            --bg-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            --card-front: #ffffff;
+            --card-inside: #f9f9f9;
+            --text-color: #2b2d42;
+            --accent-color: #8360c3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* Center the 3D scene */
+        .scene {
+            perspective: 1500px;
+            width: 340px;
+            height: 460px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .card:hover:not(.is-open) {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* The cover (Front part that opens) */
+        .card__cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+            border-radius: 24px;
+            box-shadow: 20px 20px 40px rgba(0,0,0,0.15);
+        }
+
+        /* Front face of the cover */
+        .card__cover-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: var(--card-front);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255,255,255,0.7);
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+        }
+
+        /* Back face of the cover (inside left) */
+        .card__cover-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: var(--card-inside);
+            border-radius: 24px;
+            transform: rotateY(180deg);
+            border: 1px solid #eaeaea;
+            box-shadow: inset -15px 0 25px rgba(0,0,0,0.04);
+            background: linear-gradient(135deg, #fdfdfd 0%, #f4f4f4 100%);
+        }
+
+        /* The inside back (Right side of the open card) */
+        .card__inside {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--card-inside);
+            border-radius: 24px;
+            box-shadow: 20px 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            z-index: 1;
+            border: 1px solid #eaeaea;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+        }
+
+        /* Open state */
+        .card.is-open .card__cover {
+            transform: rotateY(-150deg);
+        }
+        
+        .card.is-open {
+            transform: translateX(100px);
+        }
+
+        /* Responsive transform adjustment for smaller screens */
+        @media (max-width: 600px) {
+            .card.is-open {
+                transform: translateX(60px);
+            }
+            .scene {
+                width: 280px;
+                height: 380px;
+            }
+            .message {
+                font-size: 26px !important;
+            }
+        }
+
+        /* Decorative Elements */
+        .click-hint {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-top: 25px;
+            background: linear-gradient(45deg, #8360c3 0%, #2ebf91 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: bounce 2s infinite;
+        }
+
+        .icon-circle {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #8360c3 0%, #2ebf91 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 15px 30px rgba(131, 96, 195, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .icon-circle svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+            transform: translateX(2px); /* Slight optical center adjustment */
+        }
+
+        .card:hover .icon-circle {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .message {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--text-color);
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
+            background: linear-gradient(45deg, #ff758c 0%, #ff7eb3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card.is-open .message {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Sparkles/Confetti inside */
+        .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+            filter: blur(1px);
+        }
+
+        .card.is-open .sparkle-1 { animation: float-up 3s ease-out 0.6s forwards infinite; width: 15px; height: 15px; top: 70%; left: 15%; background: #a18cd1; }
+        .card.is-open .sparkle-2 { animation: float-up 4s ease-out 0.8s forwards infinite; width: 20px; height: 20px; top: 80%; right: 20%; background: #2ebf91; }
+        .card.is-open .sparkle-3 { animation: float-up 2.5s ease-out 0.5s forwards infinite; width: 12px; height: 12px; top: 60%; left: 30%; background: #ff758c; }
+        .card.is-open .sparkle-4 { animation: float-up 3.5s ease-out 0.9s forwards infinite; width: 18px; height: 18px; top: 75%; right: 35%; background: #fbc2eb; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+            80% { transform: translateY(-80px) scale(0.8); opacity: 0.5; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="scene">
+        <div class="card" id="card">
+            
+            <!-- Inside (Right Side) -->
+            <div class="card__inside">
+                <div class="sparkle sparkle-1"></div>
+                <div class="sparkle sparkle-2"></div>
+                <div class="sparkle sparkle-3"></div>
+                <div class="sparkle sparkle-4"></div>
+                
+                <h1 class="message">
+                    Chúc bạn<br>một ngày<br>tốt lành! ✨
+                </h1>
+            </div>
+
+            <!-- Cover (Front Side that opens) -->
+            <div class="card__cover">
+                <div class="card__cover-front">
+                    <div class="icon-circle">
+                        <!-- Playful mail/gift icon -->
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z"/>
+                        </svg>
+                    </div>
+                    <div class="click-hint">Bấm vào</div>
+                </div>
+                
+                <!-- Back of the cover (Inside Left Side) -->
+                <div class="card__cover-back"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById('card');
+        
+        // Toggle the card's open state on click
+        card.addEventListener('click', () => {
+            card.classList.toggle('is-open');
+        });
+    </script>
+</body>
+</html>
